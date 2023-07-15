@@ -5,9 +5,6 @@ import attr
 from ..models.system_type import SystemType
 from ..types import UNSET, Unset
 
-
-
-
 T = TypeVar("T", bound="ConnectedSystem")
 
 
@@ -105,9 +102,3 @@ class ConnectedSystem:
 
     def __contains__(self, key: str) -> bool:
         return key in self.additional_properties
-
-
-# connected_system = ConnectedSystem
-#
-#
-# connected_system.from_dict()

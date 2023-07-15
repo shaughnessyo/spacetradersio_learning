@@ -200,6 +200,7 @@ def create_ship_object_dict(raw_ships_dict: dict) -> dict[int:Ship]:
     """
     ship_dict = {}
     for i in range(len(raw_ships_dict)):
+
         ship_dict[i] = Ship(*raw_ships_dict[i].values())
     return ship_dict
 

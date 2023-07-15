@@ -5,11 +5,11 @@ from client import client
 from data_decode import data_decode
 
 from space_traders_api_client.api.agents import get_my_agent
-
+from SECRETS import sql_account, sql_pw
 import sqlalchemy as sa
 import pandas as pd
 
-engine = sa.create_engine('postgresql://postgres:lasers@localhost:5432/spacetraders')
+engine = sa.create_engine(f'postgresql://{sql_account}:{sql_pw}@localhost:5432/spacetraders')
 
 import pandas as pd
 
@@ -27,6 +27,8 @@ def player_credits_to_df(player_credits:int) -> pd.DataFrame:
     df = pd.DataFrame({"credits":player_credits, "tm": datetime.now()},index=[0])
     return df
 
+
+#TODO you should just make a general df to sql method for however many cases there are-- it seems like if_exists="append" covers a lot of them but there might be others
 def wallet_df_to_sql(table_name: str, engine=engine):
     player_credits = get_player_credits()
     df = player_credits_to_df(player_credits)
