@@ -8,7 +8,9 @@ from ...client import AuthenticatedClient, Client
 from ...models.get_system_waypoints_response_200 import GetSystemWaypointsResponse200
 from ...types import UNSET, Response, Unset
 
+from log_status_code import LogInformation
 
+log_information = LogInformation()
 def _get_kwargs(
     system_symbol: str,
     *,
@@ -17,7 +19,8 @@ def _get_kwargs(
     limit: Union[Unset, None, int] = 10,
 ) -> Dict[str, Any]:
     url = "{}/systems/{systemSymbol}/waypoints".format(client.base_url, systemSymbol=system_symbol)
-
+    log_information.set_api_endpoint(url)
+    log_information.set_obj_symbol(system_symbol)
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
@@ -51,6 +54,8 @@ def _parse_response(*, client: Client, response: httpx.Response) -> Optional[Get
 
 
 def _build_response(*, client: Client, response: httpx.Response) -> Response[GetSystemWaypointsResponse200]:
+    log_information.set_status_code(response.status_code)
+
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,

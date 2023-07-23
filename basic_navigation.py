@@ -1,19 +1,27 @@
+import get_ships
 from client import client
-from get_ships_list import ship_list, Ship
+from current_systems_jumpgate_map import get_current_connected_systems
+from get_ships import ship_list, Ship
+from mining_ships import mining_ship_list
 from data_decode import data_decode
 
-from space_traders_api_client.api.fleet import extract_resources, sell_cargo, dock_ship, orbit_ship
-from space_traders_api_client.models import SellCargoSellCargoRequest
+from update_market_data import update_market_data
+# from current_systems_jumpgate_map import get_current_connected_systems
+from space_traders_api_client.api.fleet import extract_resources, sell_cargo, dock_ship, orbit_ship, jump_ship
+from space_traders_api_client.models import SellCargoSellCargoRequest, JumpShipJsonBody
 from space_traders_api_client.models import ExtractResourcesJsonBody
+from log_status_code import log_status_code
 
 running = True
+
 
 def print_list_of_ships():
     ship_id = 0
     for ship in ship_list:
         print("id:", ship_id, '|', ship.symbol, ship.role, '\t', ship.nav_location, ship.nav_waypoint_location,
-              ship.nav_status)
+              ship.nav_status, ship.nav_flight_mode)
         ship_id += 1
+
 
 def choose_ship():
     print("select a ship by id")
@@ -25,13 +33,14 @@ def choose_ship():
 print_list_of_ships()
 ship_selection = choose_ship()
 
+#TODO i'd like a cooldown status check whenever it returns to the root menu
+
 while running:
     # ship_id = 0
     # for ship in ship_list:
     #     print("id:", ship_id, '|', ship.symbol, ship.role, '\t', ship.nav_location, ship.nav_waypoint_location,
     #           ship.nav_status)
     #     ship_id += 1
-
 
     # print("select a ship by id")
     # ship_selection = int(input())
@@ -42,6 +51,8 @@ while running:
           "a. orbit/undock", '\n \t',
           "b. dock", '\n \t',
           "c. nav", '\n\t',
+          "d. waypoint action\n\t"
+          "e. check cargo\n\t"
           "z. quit")
     action_selection = input()
     match action_selection:
@@ -49,25 +60,95 @@ while running:
             print_list_of_ships()
             choose_ship()
         case 'a':
-            print("orbiting")
-            orbit_ship.sync_detailed(ship_list[ship_selection].symbol, client=client)
+
+            ship_list[ship_selection].orbit_current_waypoint()
+            # print("orbiting")
+            # todo update these to use the ship class methods instead of the api call even though it's the same thing it just feels like there should be some consistency
+
+            # orbit_ship.sync_detailed(ship_list[ship_selection].symbol, client=client)
             pass
         case 'b':
-            print("docking")
-            dock_ship.sync_detailed(ship_list[ship_selection].symbol, client=client)
+
+            ship_list[ship_selection].dock()
+            # dock_ship.sync_detailed(ship_list[ship_selection].symbol, client=client)
+            # todo check fuel level before refueling automatically
+            # ship_list[ship_selection].refuel_ship()
+
         case 'c':
             current_waypoint_dict = ship_list[ship_selection].get_ship_system_waypoints()
             # print('\n', '\t', ship_list[ship_selection].get_ship_system_waypoints())
+            # print(current_waypoint_dict.items())
+            for waypoint in current_waypoint_dict.items():
+                print(waypoint)
+
             print("select waypoint:")
             waypoint_selection = int(input())
             print(current_waypoint_dict[waypoint_selection][0])
             waypoint = current_waypoint_dict[waypoint_selection][0]
             ship_list[ship_selection].nav_ship(waypoint)
 
+        case 'd':
+            # this should be a nested match case
+            print("a. extract resources")
+            print("b. sell junk")
+
+            print("c. update market data")
+
+            # need some logic around waypoint is jumpgate
+            print("d. jumpgate")
+            print("e. sell all")
+            print("f. survey")
+            print("g. mine from survey")
+            mining_action_selection = input()
+            match mining_action_selection:
+                case "a":
+                    # todo need a better way of choosing a mining ship
+                    mining_ship_list[0].mine()
+                    # ship_list[ship_selection].mining_ship.mine()
+                case "b":
+                    print("selling junk")
+                    mining_ship_list[0].sell_junk()
+
+                case "c":
+                    update_market_data()
+
+                case "d":
+                    # todo move all of this to a method and import it
+                    current_systems = get_current_connected_systems()
+                    dict_index = 0
+                    jump_targets = {}
+                    # todo i think this is weirding out and duplicating items + getting other values that aren't valid40
+                    for i, v in enumerate(current_systems.values()):
+                        for system in v:
+                            jump_targets[dict_index] = system
+                            dict_index += 1
+                    for item in jump_targets.items():
+                        print(item)
+                    jump_gate_choice = input()
+                    jump_ship_json = JumpShipJsonBody(jump_targets[int(jump_gate_choice)])
+                    jump_results = jump_ship.sync_detailed(ship_symbol=ship_list[ship_selection].symbol,
+                                                           json_body=jump_ship_json, client=client)
+                    print(jump_results)
+                    jump_targets.clear()
+                    current_systems.clear()
+                    # to do this needs to set the ship.system_waypoint to the jump gate waypoint in the target system
+                    # get_ships.get_ships_list()
+                    # print(current_systems)
+                # this needs to go somewhere
+                # if ship_list[ship_selection] in mining_ship_list:
+                #     #todo need an if for waypoint features
+                #     pass
+                case "e":
+                    mining_ship_list[0].sell_junk(sell_all=True)
+                case "f":
+                    mining_ship_list[0].survey()
+                case "g":
+                    mining_ship_list[0].mine_from_survey()
+        case 'e':
+            ship_list[ship_selection].check_cargo()
         case 'z':
 
             running = False
-
 
 """
 THIS IS THE SUCCESSFUL NAV RETURN-- need to grab the relevant info out of it 

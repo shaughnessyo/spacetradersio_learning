@@ -3,11 +3,13 @@ from typing import Any, Dict, Optional
 
 import httpx
 
+from log_status_code import LogInformation
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.create_survey_response_201 import CreateSurveyResponse201
 from ...types import Response
 
+log_information = LogInformation()
 
 def _get_kwargs(
     ship_symbol: str,
@@ -15,7 +17,8 @@ def _get_kwargs(
     client: AuthenticatedClient,
 ) -> Dict[str, Any]:
     url = "{}/my/ships/{shipSymbol}/survey".format(client.base_url, shipSymbol=ship_symbol)
-
+    log_information.set_api_endpoint(url)
+    log_information.set_obj_symbol(ship_symbol)
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
@@ -41,6 +44,8 @@ def _parse_response(*, client: Client, response: httpx.Response) -> Optional[Cre
 
 
 def _build_response(*, client: Client, response: httpx.Response) -> Response[CreateSurveyResponse201]:
+    log_information.set_status_code(response.status_code)
+
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,

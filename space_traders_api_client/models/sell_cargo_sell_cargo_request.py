@@ -20,7 +20,7 @@ class SellCargoSellCargoRequest:
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        symbol = self.symbol.value
+        symbol = self.symbol
 
         units = self.units
 

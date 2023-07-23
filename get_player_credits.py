@@ -1,3 +1,8 @@
+#TODO this needs a lot of changes to make it work with logging + a new table that maybe incorporates selling/cargo/etc?
+# actually it might be completely outmoded if i'm using the cargo_sell response
+
+
+
 import time
 from datetime import datetime
 from client import client

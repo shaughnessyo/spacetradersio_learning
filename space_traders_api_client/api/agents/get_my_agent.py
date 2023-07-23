@@ -8,12 +8,16 @@ from ...client import AuthenticatedClient, Client
 from ...models.get_my_agent_response_200 import GetMyAgentResponse200
 from ...types import Response
 
+from log_status_code import LogInformation
 
+log_information = LogInformation()
 def _get_kwargs(
     *,
     client: AuthenticatedClient,
 ) -> Dict[str, Any]:
     url = "{}/my/agent".format(client.base_url)
+    log_information.set_api_endpoint(url)
+    log_information.set_obj_symbol(None)
 
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -40,6 +44,8 @@ def _parse_response(*, client: Client, response: httpx.Response) -> Optional[Get
 
 
 def _build_response(*, client: Client, response: httpx.Response) -> Response[GetMyAgentResponse200]:
+    log_information.set_status_code(response.status_code)
+
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
