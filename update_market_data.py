@@ -70,6 +70,7 @@ def update_market_data(table_name="market_data"):
         market_data[k] = data_decode(response.content)
     goods_list = []
     for item in market_data.values():
+        #TODO this throwing a keyerror now KeyError: 'tradeGoods'
         for good in item['tradeGoods']:
             goods_list.append([
                 item['symbol'],

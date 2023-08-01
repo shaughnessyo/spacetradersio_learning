@@ -15,6 +15,9 @@ this needs to run every server reset because systems apparently aren't static?
 
 """
 
+# todo on the flight, this was timing out and i rewrote it to be resumable, but i'm too tired to figure
+#  out all of the changes that i broke along the way -- i was using a dict to track page number, but
+#  it messed
 
 
 def _depaginate_results(paginated_system_list: list[dict]) -> list[dict]:
@@ -49,7 +52,12 @@ def _get_all_systems(page: int = 1, limit: int = 20, client=client):
         # i can't think through the math right now, so i'll just sleep every two pages
         if page % 2 == 0:
             sleep(0.5)
-        full_systems_list.append(data_decode(get_systems.sync_detailed(page=page, limit=20, client=client).content))
+        full_systems_list.append(
+            data_decode(
+                get_systems.sync_detailed(page=page, limit=20, client=client).content
+            )
+        )
+        print(f"page {page} of 600, {str((page / 600)*100)[0:6]}%")
         page += 1
     cleaned_systems_list = _depaginate_results(full_systems_list)
 
@@ -60,16 +68,14 @@ system_list_test = _get_all_systems()
 
 
 print(len(system_list_test))
-with open('system_list.pickle', 'wb') as f:
+with open("system_list.pickle", "wb") as f:
     pickle.dump(system_list_test, f)
-
 
 
 # TODO to get the system list after it has been processed and also i should add a try except or conditional to see if
 # # TODO the pickled system list exists before running this
 # with open('system_list.pickle', 'rb') as f:
 #     system_list = pickle.load(f)
-
 
 
 # for system in system_list_test:

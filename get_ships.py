@@ -16,8 +16,8 @@ from space_traders_api_client.models import RefuelShipJsonBody, NavigateShipJson
 from space_traders_api_client import errors
 # import duckdb
 import pprint as pp
-
-engine = sa.create_engine('postgresql://postgres:lasers@localhost:5432/spacetraders')
+from SECRETS import sql_account, sql_pw
+engine = sa.create_engine(f"postgresql://{sql_account}:{sql_pw}@localhost:5432/spacetraders")
 
 Session = sessionmaker(bind=engine)
 
@@ -163,37 +163,14 @@ class Ship:
         print(f"{self.cargo_current}")
         print(f"{self.cargo_capacity - cargo_sum} units remaining")
 
-
-
-    def system_jumpgate_connections_sql_lookup(self):
-        df_system_jumpgate_list = pd.read_sql(
-            f"SELECT * FROM system_waypoints where system_symbol = '{self.nav_location}' and waypoint_type = 'JUMP_GATE'",
-            engine)
-
-        #todo need to handle the weird postgresql list it returns or use something other
-        #than pandas to query in order to get it into a dict, though to_dict is still an option
-
-
-    # i don't remember if i ended up using get_ship_system_waypoints
-    # def get_ship_system_waypoints(self):
-    #     raw_system_waypoints = data_decode(get_system_waypoints.sync_detailed(self.nav_location, client=client).content)
-    #     clean_system_waypoint_list = []
-    #     # print(raw_system_waypoints)
-    #     waypoint_dict = {}
-    #     dict_index = 0
-    #     for waypoint in raw_system_waypoints:
-    #         waypoint_dict[dict_index] = [waypoint['symbol'], waypoint['type']]
-    #         for trait in waypoint['traits']:
-    #             if trait['symbol'] == "MARKETPLACE" or trait['symbol'] == "SHIPYARD" or trait['symbol'] == "JUMP_GATE":
-    #                 waypoint_dict[dict_index] = [waypoint['symbol'], waypoint['type'], trait['symbol']]
-    #
-    #         print(waypoint['traits'])
-    #         dict_index += 1
-    #     #TODO - okay, i need to add more details about the features of each waypoint
-    #         # print(waypoint['symbol'], waypoint['type'])
-    #     # pp.pprint(waypoint_dict.items())
-    #     pp.pprint(waypoint_dict)
-    #     return waypoint_dict
+    def get_systems_in_range_of_jumpgate(self):
+        """
+        this actually doesn't make sense in this context because the input/selection logic isn't handled by Ship,
+        though maybe it should be? also maybe i should just return a dict of the choices?
+        :return: now it returns a dict of int choices for systems in jumpgate range
+        """
+        from jumpgate_lookup import jumpgate_lookup
+        jumpgate_lookup(self.nav_location)
 
     def nav_ship(self, waypoint):
         """

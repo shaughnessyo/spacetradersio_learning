@@ -2,8 +2,9 @@ from sqlalchemy.orm import sessionmaker
 # from get_ships import Ship
 from models import Ships
 import sqlalchemy as sa
+from SECRETS import sql_account, sql_pw
 
-engine = sa.create_engine('postgresql://postgres:lasers@localhost:5432/spacetraders')
+engine = sa.create_engine(f"postgresql://{sql_account}:{sql_pw}@localhost:5432/spacetraders")
 
 Session = sessionmaker(bind=engine)
 

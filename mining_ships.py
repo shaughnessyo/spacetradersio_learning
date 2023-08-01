@@ -1,33 +1,27 @@
-from data_to_sql import survey_results_to_sql
-from df_print_full import df_print_full
 from log_market_transaction import log_market_transaction
-from space_traders_api_client.api.fleet import get_mounts, extract_resources, sell_cargo, get_my_ship_cargo, \
-    create_survey
-from client import client
-
-from time import sleep
 import datetime
+from time import sleep
+
 import arrow
-
 import numpy as np
-
-from get_ships import ship_list, Ship
-from data_decode import data_decode, error_decode
-from space_traders_api_client.models import ExtractResourcesJsonBody, SellCargoSellCargoRequest, \
-    SellCargoSellCargo201ResponseData, MarketTransaction
-
-from MiningSurvey import MiningSurvey
-from space_traders_api_client.models.survey import Survey
-from space_traders_api_client.models.survey_deposit import SurveyDeposit
-from space_traders_api_client.models.survey_size import SurveySize
-
 import pandas as pd
 import sqlalchemy as sa
 
+from SECRETS import sql_account, sql_pw
+from client import client
+from data_decode import data_decode, error_decode
+from get_ships import ship_list, Ship
+from log_market_transaction import log_market_transaction
+from space_traders_api_client.api.fleet import get_mounts, extract_resources, sell_cargo, create_survey
+from space_traders_api_client.models import ExtractResourcesJsonBody, SellCargoSellCargoRequest
 # todo if i'm going to use the Survey object here, i might as well use it for sql parts
 from space_traders_api_client.models import Survey
+from space_traders_api_client.models.survey_deposit import SurveyDeposit
+from space_traders_api_client.models.survey_size import SurveySize
 
-engine = sa.create_engine('postgresql://postgres:lasers@localhost:5432/spacetraders')
+engine = sa.create_engine(f"postgresql://{sql_account}:{sql_pw}@localhost:5432/spacetraders")
+
+# engine = sa.create_engine('postgresql://postgres:lasers@localhost:5432/spacetraders')
 
 
 # print(ship, mount['symbol'])
@@ -96,8 +90,15 @@ class MiningShip:
             # todo apparently storing a list like this is bad database normalization practice-- it should be a
             # parent-child table linked by a foreign key, but for now WHO CARE
 
-            survey_results_to_sql(signature=survey_signature, waypoint_symbol=survey_symbol,
-                                  deposits=deposit_list, expiration=expiration, size=size)
+            from data_to_sql import survey_results_to_sql_peewee
+
+            time_stamp = arrow.utcnow()
+            survey_results_to_sql_peewee(signature=survey_signature,waypoint_symbol=survey_symbol,
+                                         expiration=expiration,size=size,time_stamp=time_stamp.datetime,
+                                         survey_deposits=deposit_list)
+
+            # survey_results_to_sql(signature=survey_signature, waypoint_symbol=survey_symbol,
+            #                       deposits=deposit_list, expiration=expiration, size=size)
 
             # print(create_survey_response['surveys']['signature'])
             # print(create_survey_response['surveys']['symbol'])
@@ -113,6 +114,18 @@ class MiningShip:
             error_response = error_decode(response.content)
             print(error_response)
         pass
+
+
+    def mine_from_survey_peewee(self):
+
+        from peewee_models import SurveyResult
+        survey_results = SurveyResult.select()
+        # print(survey_results)
+        # print(survey_results.columns())
+        for result in survey_results:
+            print(result.id, result.waypoint_symbol, result.deposits)
+        pass
+
 
     def mine_from_survey(self):
         """
@@ -166,6 +179,7 @@ class MiningShip:
 
         ###TODO this needs a check that there is a valid nonexpired survey regardless of its value
         #todo short term it would probably make more sense to be able to choose a survey
+        # maybe also swap this out for the psycopg2 sql query since it seems to be a bit cleaner
 
         # def choose_survey()
         best_survey = df_test.tail(1)
@@ -179,6 +193,7 @@ class MiningShip:
         # print(deposits_from_sql[0].replace('{', '[').replace('}', ']'))
 
         # deposits_from_sql = deposits_from_sql[0].replace('{','[').replace('}',']')
+        #TODO this needs ot be updated to match the new sql query biz
         deposits_from_sql = deposits_from_sql[0].replace('{', '').replace('}', '')
         deposits_from_sql = deposits_from_sql.split(',')
 
@@ -204,8 +219,11 @@ class MiningShip:
         # size: SurveySize
 
         #not 100% sure that this is going to work-- might have to specifically grab the single value
-        survey_obj = Survey(signature=svy_signature, symbol=svy_waypoint_symbol,
-                            deposits=deposit_list, expiration=svy_expiration.datetime, size=svy_size)
+        survey_obj = Survey(signature=svy_signature,
+                            symbol=svy_waypoint_symbol,
+                            deposits=deposit_list,
+                            expiration=svy_expiration.datetime,
+                            size=svy_size)
 
         # mining_survey = MiningSurvey(df_test['signature'], df_test['waypoint_symbol'], df_test['deposits'],
         #                              df_test['expiration'], df_test['size'])
@@ -328,5 +346,8 @@ mining_ship_list = build_mining_ship_list(ship_list)
 
 for mining_ship in mining_ship_list:
     print(mining_ship.ship.symbol)
+
+# def check_mining_ship_membership()
+
 
 # TODO this should be stored in the database and only looked up from the api when something changes

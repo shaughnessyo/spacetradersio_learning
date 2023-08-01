@@ -1,8 +1,13 @@
 ### models.py ###
+import datetime
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date, TIMESTAMP, orm
 import sqlalchemy as sa
+
+from sqlalchemy.dialects.postgresql import array
+from sqlalchemy.dialects import postgresql
+from sqlalchemy import select, func
 
 engine = sa.create_engine('postgresql://postgres:lasers@localhost:5432/spacetraders')
 Base = sa.orm.declarative_base()
@@ -99,12 +104,19 @@ class SystemWaypoints(Base):
                f" waypoint_symbol= {self.waypoint_symbol}, jumpgate_list = {self.jumpgate_list}"
 
 
+# class SystemWaypointsJumpgate
+
+
+# todo i can either switch to peewee orm or figure out how to do the things i need in alchemy
+# i could import the array type from postgresql extensions
 class SurveyResults(Base):
     __tablename__ = "survey_results"
     id = Column(Integer, primary_key=True)
     signature = Column(String)
     waypoint_symbol = Column(String)
-    deposits = Column(String)  # actually a list
+    # deposits = Column(String)  # actually a list
+
+    deposits = Column("deposits", postgresql.ARRAY(String))  # actually a list
     expiration = Column(String)  # this is a datetime but i'm not sure how to handle it before it goes into postgresql
     # datetime.fromisoformat(
     size = Column(String)  # actually an enum i think?
@@ -113,6 +125,7 @@ class SurveyResults(Base):
     def __repr__(self):
         return f"SurveyResults(id={self.id}, signature={self.signature}, waypoint_symbol={self.waypoint_symbol}," \
                f"deposits={self.deposits}, expiration={self.expiration}, size={self.size}"
+
 
 # class Book(Base):
 #     __tablename__ = 'books'
