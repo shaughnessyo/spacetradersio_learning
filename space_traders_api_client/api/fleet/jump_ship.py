@@ -3,13 +3,11 @@ from typing import Any, Dict, Optional
 
 import httpx
 
-from log_status_code import LogInformation
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.jump_ship_json_body import JumpShipJsonBody
 from ...models.jump_ship_response_200 import JumpShipResponse200
 from ...types import Response
-log_information = LogInformation()
 
 
 def _get_kwargs(
@@ -19,8 +17,7 @@ def _get_kwargs(
     json_body: JumpShipJsonBody,
 ) -> Dict[str, Any]:
     url = "{}/my/ships/{shipSymbol}/jump".format(client.base_url, shipSymbol=ship_symbol)
-    log_information.set_api_endpoint(url)
-    log_information.set_obj_symbol(ship_symbol)
+
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
 
@@ -49,7 +46,6 @@ def _parse_response(*, client: Client, response: httpx.Response) -> Optional[Jum
 
 
 def _build_response(*, client: Client, response: httpx.Response) -> Response[JumpShipResponse200]:
-    log_information.set_status_code(response.status_code)
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,

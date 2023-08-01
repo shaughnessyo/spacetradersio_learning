@@ -3,27 +3,18 @@ from typing import Any, Dict, Optional
 
 import httpx
 
-from log_status_code import log_status_code
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.dock_ship_dock_ship_200_response import DockShipDockShip200Response
 from ...types import Response
 
-from log_status_code import LogInformation
-
-
-
-log_information = LogInformation()
-
 
 def _get_kwargs(
-        ship_symbol: str,
-        *,
-        client: AuthenticatedClient,
+    ship_symbol: str,
+    *,
+    client: AuthenticatedClient,
 ) -> Dict[str, Any]:
     url = "{}/my/ships/{shipSymbol}/dock".format(client.base_url, shipSymbol=ship_symbol)
-    log_information.set_api_endpoint(url)
-    log_information.set_obj_symbol(ship_symbol)
 
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -50,13 +41,6 @@ def _parse_response(*, client: Client, response: httpx.Response) -> Optional[Doc
 
 
 def _build_response(*, client: Client, response: httpx.Response) -> Response[DockShipDockShip200Response]:
-    log_information.set_status_code(response.status_code)
-    # log_information.data_to_sql()
-
-    # log_status_code("dock_ship", response.status_code)
-    # print(response.content)
-    # print(response.headers)
-
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -66,9 +50,9 @@ def _build_response(*, client: Client, response: httpx.Response) -> Response[Doc
 
 
 def sync_detailed(
-        ship_symbol: str,
-        *,
-        client: AuthenticatedClient,
+    ship_symbol: str,
+    *,
+    client: AuthenticatedClient,
 ) -> Response[DockShipDockShip200Response]:
     """Dock Ship
 
@@ -105,9 +89,9 @@ def sync_detailed(
 
 
 def sync(
-        ship_symbol: str,
-        *,
-        client: AuthenticatedClient,
+    ship_symbol: str,
+    *,
+    client: AuthenticatedClient,
 ) -> Optional[DockShipDockShip200Response]:
     """Dock Ship
 
@@ -137,9 +121,9 @@ def sync(
 
 
 async def asyncio_detailed(
-        ship_symbol: str,
-        *,
-        client: AuthenticatedClient,
+    ship_symbol: str,
+    *,
+    client: AuthenticatedClient,
 ) -> Response[DockShipDockShip200Response]:
     """Dock Ship
 
@@ -174,9 +158,9 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-        ship_symbol: str,
-        *,
-        client: AuthenticatedClient,
+    ship_symbol: str,
+    *,
+    client: AuthenticatedClient,
 ) -> Optional[DockShipDockShip200Response]:
     """Dock Ship
 

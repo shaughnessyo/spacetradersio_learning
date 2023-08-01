@@ -14,7 +14,7 @@ from log_status_code import log_status_code
 
 running = True
 
-
+#todo look at why this wouldn't be cycling when ship selection changes
 def print_list_of_ships():
     ship_id = 0
     for ship in ship_list:
@@ -24,6 +24,7 @@ def print_list_of_ships():
 
 
 def choose_ship():
+
     print("select a ship by id")
     ship_selection = int(input())
     print(ship_list[ship_selection])
@@ -34,6 +35,7 @@ print_list_of_ships()
 ship_selection = choose_ship()
 
 #TODO i'd like a cooldown status check whenever it returns to the root menu
+
 
 while running:
     # ship_id = 0
@@ -58,7 +60,7 @@ while running:
     match action_selection:
         case '1':
             print_list_of_ships()
-            choose_ship()
+            ship_selection = choose_ship()
         case 'a':
 
             ship_list[ship_selection].orbit_current_waypoint()
@@ -103,11 +105,20 @@ while running:
             match mining_action_selection:
                 case "a":
                     # todo need a better way of choosing a mining ship
-                    mining_ship_list[0].mine()
+                    #todo this works, but will probably scale really poorly and should be replaced with a postgresql lookup
+                    #todo this isn't handling switching ships
+                    for mining_ship in mining_ship_list:
+                        if ship_list[ship_selection] == mining_ship.ship:
+                            mining_ship.mine()
+                    # if ship_list[ship_selection] in mining_ship_list:
+                    #     ship_list[ship_selection].mine()
+                    # mining_ship_list[0].mine()
                     # ship_list[ship_selection].mining_ship.mine()
                 case "b":
                     print("selling junk")
-                    mining_ship_list[0].sell_junk()
+                    for mining_ship in mining_ship_list:
+                        if ship_list[ship_selection] == mining_ship.ship:
+                            mining_ship.sell_junk()
 
                 case "c":
                     update_market_data()
@@ -139,11 +150,20 @@ while running:
                 #     #todo need an if for waypoint features
                 #     pass
                 case "e":
-                    mining_ship_list[0].sell_junk(sell_all=True)
+                    for mining_ship in mining_ship_list:
+                        if ship_list[ship_selection] == mining_ship.ship:
+                            mining_ship.sell_junk(sell_all=True)
                 case "f":
-                    mining_ship_list[0].survey()
+                    for mining_ship in mining_ship_list:
+                        if ship_list[ship_selection] == mining_ship.ship:
+                            mining_ship.survey()
+
                 case "g":
-                    mining_ship_list[0].mine_from_survey()
+                    for mining_ship in mining_ship_list:
+                        if ship_list[ship_selection] == mining_ship.ship:
+                            print(mining_ship.ship)
+                            # mining_ship.mine_from_survey()
+                            mining_ship.mine_from_survey_peewee()
         case 'e':
             ship_list[ship_selection].check_cargo()
         case 'z':
